@@ -42,7 +42,7 @@ class TestAnswerAdminInline(admin.TabularInline):
 
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
-    list_display = ('id', 'course', 'question')
+    list_display = ('id', 'course',)
     inlines = [TestAnswerAdminInline]
 
 
