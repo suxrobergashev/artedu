@@ -12,14 +12,7 @@ class User(BaseModel):
     phone_number = models.CharField(max_length=14)
     password = models.CharField(max_length=250)
 
-    def save(self, *args, **kwargs):
-        # Check if the password is being set or updated
-        if self.pk is None or 'password' in self.get_dirty_fields():
-            # Hash the password before saving
-            self.password = make_password(self.password)
 
-        # Call the parent class's save method
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.first_name + " " + self.last_name

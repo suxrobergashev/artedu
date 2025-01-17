@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from .models import User, CourseCategory, Course, AdditionalMaterials, TestAnswer, Test, TestResult, CourseHomework
 
@@ -18,6 +19,16 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Phone number already exists')
         return value
 
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+
+        return super().update(instance, validated_data)
+
 
 class CourseCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,6 +43,11 @@ class AdditionalMaterialsSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ('id', 'title', 'category', 'image', 'description', 'video', 'homework', 'created_at')
+
+class CourseRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ('id', 'title', 'category', 'image', 'description', 'video', 'homework', 'created_at')

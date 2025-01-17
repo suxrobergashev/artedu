@@ -5,13 +5,17 @@ from utils.check_token import validate_token
 
 
 class UserAuthMiddleware(MiddlewareMixin):
-    def process_request(self, request, *view_args, **view_kwargs):
-        target=None
+    def process_view(self, request, view_func, view_args, view_kwargs):
         pk = view_kwargs.get('pk')
         if pk is not None:
-            target = [reverse('courses_detail', kwargs={'pk': pk}), reverse('course_homework', kwargs={'pk': pk}),
-                      reverse('quiz_list', kwargs={'pk': pk}), reverse('quiz_answers', kwargs={'pk': pk})]
-
+            target = [
+                reverse('courses_detail', kwargs={'pk': pk}),
+                reverse('course_homework', kwargs={'pk': pk}),
+                reverse('quiz_list', kwargs={'pk': pk}),
+                reverse('quiz_answers', kwargs={'pk': pk}),
+            ]
+        else:
+            target = [reverse('auth_me'), reverse('history')]
         if not target or request.path not in target:
             return
         payload = validate_token(request.headers.get('Authorization'))

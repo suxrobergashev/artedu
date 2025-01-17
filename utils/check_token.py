@@ -1,5 +1,5 @@
 from .get_untyped_token import decode_token
-from authentication.models import User
+from course.models import User
 
 
 def validate_token(token):
@@ -11,10 +11,9 @@ def validate_token(token):
     if not payload:
         return
     user_id = payload.get('user_id', None)
-    login_time = payload.get('login_time', None)
-    if not user_id or not login_time:
+    if not user_id:
         return
-    user = User.objects.filter(id=user_id, login_time=login_time).first()
+    user = User.objects.filter(id=user_id).first()
     if not user:
         return
     return payload

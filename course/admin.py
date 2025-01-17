@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.hashers import make_password
+
 from .models import User, Course, CourseCategory, Test, TestAnswer, TestResult
 
 
@@ -8,6 +10,15 @@ class UserAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'phone_number')
     list_filter = ('last_name', 'first_name', 'created_at')
+
+    def save_model(self, request, obj, form, change):
+        # Check if this is a new user or if the password is being updated
+        if not obj.pk or 'password' in form.changed_data:
+            obj.password = make_password(obj.password)
+
+        # Call the parent class's save_model method
+        super().save_model(request, obj, form, change)
+
 
 
 @admin.register(CourseCategory)
@@ -33,6 +44,7 @@ class TestAnswerAdminInline(admin.TabularInline):
 class TestAdmin(admin.ModelAdmin):
     list_display = ('id', 'course', 'question')
     inlines = [TestAnswerAdminInline]
+
 
 @admin.register(TestResult)
 class TestResultAdmin(admin.ModelAdmin):

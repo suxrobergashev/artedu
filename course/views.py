@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User, Course, CourseCategory, Test, CourseHomework, TestAnswer, TestResult
 from .serializers import UserSerializer, LoginSerializer, CourseSerializer, CourseCategorySerializer, TestSerializer, \
-    CourseHomeworkSerializer, QuizAnswerSerializer
+    CourseHomeworkSerializer, QuizAnswerSerializer, CourseRetrieveSerializer
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -50,6 +50,44 @@ class UserViewSet(viewsets.ViewSet):
             data={'result': {'access_token': str(access_token), 'refresh_token': str(refresh_token)}, 'ok': True},
             status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_summary='User me',
+        operation_description='User me',
+        responses={200: UserSerializer()},
+        tags=['User']
+    )
+    def auth_me(self, request):
+        user = request.user
+        return Response({"result": UserSerializer(user).data, "ok": True}, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_summary='User update',
+        operation_description='User update',
+        request_body=UserSerializer,
+        responses={200: UserSerializer()},
+        tags=['User'],
+
+    )
+    def auth_me_update(self, request):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(data={"error": serializer.errors, 'ok': False}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(data={'result': serializer.data, 'ok': True}, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_summary='User course history',
+        operation_description='User course history',
+        responses={200: CourseSerializer(many=True)},
+        tags=['User']
+    )
+    def history(self, request):
+        user = request.user
+        courses = Course.objects.filter(user=user)
+        return Response(data={'result': CourseSerializer(courses, many=True).data, 'ok': True},
+                        status=status.HTTP_200_OK)
+
 
 class CourseViewSet(viewsets.ViewSet):
     @swagger_auto_schema(
@@ -88,7 +126,7 @@ class CourseViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary='Course detail',
-        responses={200: CourseSerializer()},
+        responses={200: CourseRetrieveSerializer()},
         tags=['Course']
     )
     def retrieve(self, request, pk=None):
@@ -97,7 +135,7 @@ class CourseViewSet(viewsets.ViewSet):
             return Response(data={'error': "Course not Found", 'ok': False}, status=status.HTTP_404_NOT_FOUND)
         if not course.students.filter(id=request.user.id).exists():
             course.students.add(request.user)
-        serializer = CourseSerializer(course, context={'request': request})
+        serializer = CourseRetrieveSerializer(course, context={'request': request})
         return Response(data={'result': serializer.data, 'ok': True}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
@@ -109,12 +147,14 @@ class CourseViewSet(viewsets.ViewSet):
         if CourseHomework.objects.filter(course_id=pk, user=request.user).exists():
             return Response(data={'error': "You are already send homework", 'ok': False},
                             status=status.HTTP_400_BAD_REQUEST)
-        serialize = CourseHomeworkSerializer(course_pk=pk, user=request.user, data=request.data,
-                                             context={'request': request})
-        if not serialize.is_valid():
-            return Response(data={'error': serialize.errors, 'ok': False}, status=status.HTTP_400_BAD_REQUEST)
-        serialize.save()
-        return Response(data={'result': serialize.data, 'ok': True}, status=status.HTTP_200_OK)
+        data = request.data.copy()  # request.data form-data ni oladi
+        data['course'] = pk  # `course` ni request ma'lumotlariga qo'shamiz
+        data['user'] = request.user.id  # `user`ni ham qo'shamiz
+        serializer = CourseHomeworkSerializer(data=data, context={'request': request})
+        if not serializer.is_valid():
+            return Response(data={'error': serializer.errors, 'ok': False}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(data={'result': serializer.data, 'ok': True}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_summary='Course question list',
