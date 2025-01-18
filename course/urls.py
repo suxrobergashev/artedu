@@ -4,7 +4,7 @@ from .views import UserViewSet, CourseViewSet
 urlpatterns = [
     path('register/', UserViewSet.as_view({'post': 'register'}), name='register'),
     path('login/', UserViewSet.as_view({'post': 'login'}), name='login'),
-    path('athe/me/', UserViewSet.as_view({'patch': 'auth_me_update', 'get': 'auth_me'}), name='auth_me'),
+    path('auth/me/', UserViewSet.as_view({'patch': 'auth_me_update', 'get': 'auth_me'}), name='auth_me'),
 
     path('history/', UserViewSet.as_view({'get': 'history'}), name='history'),
 
