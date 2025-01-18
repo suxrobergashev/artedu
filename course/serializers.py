@@ -47,6 +47,12 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = ('id', 'title', 'category', 'image', 'description', 'video', 'homework', 'created_at')
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['views_count'] = instance.student_count
+        return ret
+
+
 class CourseRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
@@ -60,6 +66,7 @@ class CourseRetrieveSerializer(serializers.ModelSerializer):
         ret['student_homework'] = instance.student_homework_check(self.context['request'].user)
         ret['test_result'] = instance.test_result(self.context['request'].user)
         ret['additional_materials'] = AdditionalMaterialsSerializer(instance.additional_materials, many=True).data
+        ret['questions'] = TestSerializer(instance.tests, many=True, context=self.context).data
         return ret
 
 

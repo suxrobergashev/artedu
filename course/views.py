@@ -156,21 +156,6 @@ class CourseViewSet(viewsets.ViewSet):
         serializer.save()
         return Response(data={'result': serializer.data, 'ok': True}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        operation_summary='Course question list',
-        operation_description='Course question list, pk=course_id',
-        responses={200: TestSerializer(many=True)},
-        tags=['Course question']
-    )
-    def quiz_list(self, request, pk):
-        test = Test.objects.filter(course_id=pk)
-        if not test:
-            return Response(data={'error': "Not Found ", 'ok': False}, status=status.HTTP_404_NOT_FOUND)
-        course = test.first().course
-        if not course.students.filter(id=request.user.id).exists():
-            course.students.add(request.user)
-        return Response(data={'result': TestSerializer(test, many=True, context={'request': request}).data, 'ok': True},
-                        status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         request_body=QuizAnswerSerializer(many=True),
