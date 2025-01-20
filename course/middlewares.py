@@ -11,7 +11,6 @@ class UserAuthMiddleware(MiddlewareMixin):
             target = [
                 reverse('courses_detail', kwargs={'pk': pk}),
                 reverse('course_homework', kwargs={'pk': pk}),
-                reverse('quiz_list', kwargs={'pk': pk}),
                 reverse('quiz_answers', kwargs={'pk': pk}),
             ]
         else:

@@ -15,8 +15,17 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_phone_number(self, value):
-        if User.objects.filter(phone_number=value).exists():
+        # Foydalanuvchini filtrlash uchun queryset yarating
+        queryset = User.objects.filter(phone_number=value)
+
+        # Agar instance mavjud bo'lsa (update uchun), o'zini chetlab o'ting
+        if self.instance:
+            queryset = queryset.exclude(id=self.instance.id)
+
+        # Agar raqam boshqa foydalanuvchida mavjud bo'lsa, xatolik ko'tarish
+        if queryset.exists():
             raise serializers.ValidationError('Phone number already exists')
+
         return value
 
     def create(self, validated_data):

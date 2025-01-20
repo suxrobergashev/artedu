@@ -25,8 +25,12 @@ class UserViewSet(viewsets.ViewSet):
         serializer = UserSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(data={"error": serializer.errors, 'ok': False}, status=status.HTTP_400_BAD_REQUEST)
-        serializer.save()
-        return Response(data={'result': serializer.data, 'ok': True}, status=status.HTTP_201_CREATED)
+        user=serializer.save()
+        refresh_token = RefreshToken.for_user(user)
+        access_token = refresh_token.access_token
+        return Response(
+            data={'result': serializer.data, 'access_token': str(access_token), 'refresh_token': str(refresh_token),
+                  'ok': True}, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         request_body=LoginSerializer,
@@ -84,9 +88,10 @@ class UserViewSet(viewsets.ViewSet):
     )
     def history(self, request):
         user = request.user
-        courses = Course.objects.filter(user=user)
-        return Response(data={'result': CourseSerializer(courses, many=True).data, 'ok': True},
-                        status=status.HTTP_200_OK)
+        courses = Course.objects.filter(students=user)
+        return Response(
+            data={'result': CourseSerializer(courses, many=True, context={'request': request}).data, 'ok': True},
+            status=status.HTTP_200_OK)
 
 
 class CourseViewSet(viewsets.ViewSet):
@@ -155,7 +160,6 @@ class CourseViewSet(viewsets.ViewSet):
             return Response(data={'error': serializer.errors, 'ok': False}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         return Response(data={'result': serializer.data, 'ok': True}, status=status.HTTP_200_OK)
-
 
     @swagger_auto_schema(
         request_body=QuizAnswerSerializer(many=True),
