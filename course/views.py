@@ -25,7 +25,7 @@ class UserViewSet(viewsets.ViewSet):
         serializer = UserSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(data={"error": serializer.errors, 'ok': False}, status=status.HTTP_400_BAD_REQUEST)
-        user=serializer.save()
+        user = serializer.save()
         refresh_token = RefreshToken.for_user(user)
         access_token = refresh_token.access_token
         return Response(
