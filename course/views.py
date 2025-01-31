@@ -29,7 +29,7 @@ class UserViewSet(viewsets.ViewSet):
         refresh_token = RefreshToken.for_user(user)
         access_token = refresh_token.access_token
         return Response(
-            data={'result': serializer.data, 'access_token': str(access_token), 'refresh_token': str(refresh_token),
+            data={'result': {'access_token': str(access_token), 'refresh_token': str(refresh_token)},
                   'ok': True}, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
