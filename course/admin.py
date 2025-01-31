@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.hashers import make_password
 
-from .models import User, Course, CourseCategory, Test, TestAnswer, TestResult
+from .models import User, Course, CourseCategory, Test, TestAnswer, TestResult, AdditionalMaterials
 
 
 @admin.register(User)
@@ -27,13 +27,18 @@ class CourseCategoryAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'name')
 
 
+
+class AdditionalMaterialsAdminInline(admin.TabularInline):
+    model = AdditionalMaterials
+    extra = 0
+
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('id', 'title')
     list_display_links = ('id', 'title')
     search_fields = ('title', 'description')
     list_filter = ('title', 'created_at')
-
+    inlines = [AdditionalMaterialsAdminInline]
 
 class TestAnswerAdminInline(admin.TabularInline):
     model = TestAnswer
