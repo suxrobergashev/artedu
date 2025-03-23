@@ -74,7 +74,8 @@ class CourseRetrieveSerializer(serializers.ModelSerializer):
         ret['student_subscription'] = instance.student_subscription(self.context['request'].user)
         ret['student_homework'] = instance.student_homework_check(self.context['request'].user)
         ret['test_result'] = instance.test_result(self.context['request'].user)
-        ret['additional_materials'] = AdditionalMaterialsSerializer(instance.additional_materials, many=True).data
+        ret['additional_materials'] = AdditionalMaterialsSerializer(instance.additional_materials, many=True,
+                                                                    context=self.context).data
         ret['questions'] = TestSerializer(instance.tests, many=True, context=self.context).data
         return ret
 
@@ -92,7 +93,7 @@ class TestSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['answers'] = TestAnswerSerializer(instance.question_answers, many=True).data
+        ret['answers'] = TestAnswerSerializer(instance.question_answers, many=True, context=self.context).data
         return ret
 
 
